@@ -1,0 +1,284 @@
+{% extends "index.html" %}
+
+{% block title %}{% if workout is defined %}Upraviť cvik{% else %}Vybrať tréning{% endif %}{% endblock %}
+
+{% block content %}
+
+{% if workout is defined %}
+
+<div class="mb-4">
+    <h1 class="fw-bold">Upraviť cvik</h1>
+    <p class="text-secondary">Uprav konkrétny cvik z histórie</p>
+</div>
+
+<div class="card bg-black text-light p-4">
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">Cvik</label>
+            <input type="text" name="exercise" class="form-control bg-dark text-light border-secondary" value="{{ exercise or '' }}" required>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">Série</label>
+                <input type="number" name="sets" class="form-control bg-dark text-light border-secondary" value="{{ workout.sets or '3' }}" required>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Opakovania</label>
+                <input type="text" name="reps" class="form-control bg-dark text-light border-secondary" value="{{ workout.reps }}" required>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Váha (kg)</label>
+                <input type="number" step="0.5" name="weight" class="form-control bg-dark text-light border-secondary" value="{{ workout.weight }}" required>
+            </div>
+        </div>
+
+        <div class="mb-3 mt-3">
+            <label class="form-label">Typ tréningu</label>
+            <select name="workout_type" class="form-select bg-dark text-light border-secondary">
+                {% for type in ['Push', 'Pull', 'Legs', 'Full Body', 'Calisthenics'] %}
+                    <option value="{{ type }}" {% if workout_type == type %}selected{% endif %}>{{ type }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Uložiť zmeny</button>
+    </form>
+</div>
+
+{% else %}
+
+<div class="mb-4">
+    <h1 class="fw-bold">Vyber tréning</h1>
+    <p class="text-secondary">Vyber hotový plán alebo si poskladaj vlastný tréning</p>
+</div>
+
+<div class="card bg-black text-light p-4 mb-4 custom-workout-card">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+        <div>
+            <h2 class="fw-bold mb-1">Vlastný tréning</h2>
+            <p class="text-secondary mb-0">Pridaj toľko cvikov, koľko chceš, a ulož ich naraz do histórie.</p>
+        </div>
+        <button type="button" class="btn btn-outline-primary" id="addCustomExercise">Pridať cvik</button>
+    </div>
+
+    <form method="POST" action="{{ url_for('add_custom_workout') }}" id="customWorkoutForm">
+        <div class="mb-3">
+            <label class="form-label">Názov tréningu</label>
+            <input type="text" name="custom_workout_name" maxlength="25" class="form-control bg-dark text-light border-secondary" placeholder="Napr. Ruky pumpa" value="Custom tréning" required>
+            <div class="small text-secondary mt-1">Maximálne 25 písmen.</div>
+        </div>
+
+        <div id="customExerciseList" class="custom-exercise-list"></div>
+
+        <button class="btn btn-success w-100 mt-3">Uložiť custom tréning do histórie</button>
+    </form>
+</div>
+
+<div class="workout-section-divider">
+    <span>Hotové tréningy a odporúčanie</span>
+</div>
+
+{% if recommended_plan %}
+<div class="card bg-black text-light overflow-hidden mb-4 recommended-plan">
+    <div class="row g-0 align-items-stretch">
+        <div class="col-lg-5">
+            <div class="plan-summary-panel bg-dark h-100 p-4">
+                <div class="plan-summary-label">{{ recommended_plan.name }}</div>
+                <div class="plan-summary-count">{{ recommended_plan.exercises|length }}</div>
+                <div class="text-secondary">cviky pripravené na dnešný tréning</div>
+            </div>
+        </div>
+        <div class="col-lg-7 p-4">
+            <span class="badge bg-{{ recommended_plan.color }} mb-2">Odporúčané pre teba</span>
+            <h2 class="fw-bold">{{ recommended_plan.name }}</h2>
+            <p class="text-secondary">{{ recommended_plan.description }} {{ recommended_plan.schedule }}</p>
+
+            <div class="exercise-strip mb-3">
+                {% for exercise in recommended_plan.exercises %}
+                    <div class="exercise-mini">
+                        <span class="exercise-group">{{ get_exercise_group(exercise.name) }}</span>
+                        <span>{{ exercise.name }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <form method="POST" action="{{ url_for('add_plan', plan_slug=recommended_plan.slug) }}">
+                <button class="btn btn-success btn-lg w-100">Pridať celý tréning do histórie</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-3">
+    {% for plan in plans %}
+        <div class="col-lg-6">
+            <div class="card bg-black text-light h-100 overflow-hidden workout-plan-card">
+                <div class="plan-card-header bg-dark p-3">
+                    <div class="plan-summary-label">{{ plan.name }}</div>
+                    <div class="text-secondary small">{{ plan.exercises|length }} cviky | {{ plan.schedule }}</div>
+                </div>
+
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <div>
+                            <h3 class="mb-1">{{ plan.name }}</h3>
+                            <p class="text-secondary mb-0">{{ plan.description }}</p>
+                        </div>
+                        <span class="badge bg-{{ plan.color }} plan-goal-badge">{{ plan.goal }}</span>
+                    </div>
+
+                    <div class="row g-2 mt-3">
+                        {% for exercise in plan.exercises %}
+                            <div class="col-md-6">
+                                <div class="exercise-card bg-dark border border-secondary rounded overflow-hidden h-100">
+                                    <div class="exercise-card-head">
+                                        <span>{{ get_exercise_group(exercise.name) }}</span>
+                                    </div>
+                                    <div class="p-2">
+                                        <strong>{{ exercise.name }}</strong>
+                                        <div class="text-secondary small">
+                                            {{ exercise.sets }} série × {{ exercise.reps }} | {% if exercise.weight == '0' %}vlastná váha{% else %}{{ exercise.weight }} kg{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <form method="POST" action="{{ url_for('add_plan', plan_slug=plan.slug) }}" class="mt-3">
+                        <button class="btn btn-{{ plan.color }} w-100">Pridať tento tréning</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endif %}
+
+<script>
+    const exerciseCategories = {{ (custom_categories | default({})) | tojson | safe }};
+    const bodyweightExercises = new Set(exerciseCategories['Vlastná váha'] || []);
+    const customExerciseList = document.getElementById('customExerciseList');
+    const addCustomExerciseButton = document.getElementById('addCustomExercise');
+    let customExerciseIndex = 0;
+
+    function createOption(value, label) {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        return option;
+    }
+
+    function updateExerciseOptions(row) {
+        const categorySelect = row.querySelector('[data-field="category"]');
+        const exerciseSelect = row.querySelector('[data-field="exercise"]');
+        const category = categorySelect.value;
+
+        exerciseSelect.innerHTML = '';
+        (exerciseCategories[category] || []).forEach(function (exercise) {
+            exerciseSelect.appendChild(createOption(exercise, exercise));
+        });
+
+        updateWeightMode(row);
+    }
+
+    function updateWeightMode(row) {
+        const categorySelect = row.querySelector('[data-field="category"]');
+        const exerciseSelect = row.querySelector('[data-field="exercise"]');
+        const weightInput = row.querySelector('[data-field="weight"]');
+        const weightHint = row.querySelector('[data-field="weight-hint"]');
+
+        if (!categorySelect || !exerciseSelect || !weightInput || !weightHint) {
+            return;
+        }
+
+        const isBodyweight = categorySelect.value === 'Vlastná váha' || bodyweightExercises.has(exerciseSelect.value);
+
+        weightInput.readOnly = isBodyweight;
+        weightInput.value = isBodyweight ? '0' : weightInput.value;
+        weightInput.placeholder = isBodyweight ? 'vlastná váha' : 'kg';
+        weightHint.textContent = isBodyweight ? 'Vlastná váha' : 'kg';
+        weightHint.classList.toggle('text-info', isBodyweight);
+        weightHint.classList.toggle('text-secondary', !isBodyweight);
+    }
+
+    function addCustomExerciseRow() {
+        const row = document.createElement('div');
+        row.className = 'custom-exercise-row bg-dark border border-secondary rounded p-3 mb-3';
+        row.dataset.index = String(customExerciseIndex);
+
+        const categoryOptions = Object.keys(exerciseCategories)
+            .map(function (category) {
+                return `<option value="${category}">${category}</option>`;
+            })
+            .join('');
+
+        row.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center gap-2 mb-3">
+                <strong>Cvik ${customExerciseIndex + 1}</strong>
+                <button type="button" class="btn btn-danger btn-sm" data-action="remove">Odstrániť</button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Kategória</label>
+                    <select name="custom_category[]" class="form-select bg-black text-light border-secondary" data-field="category">
+                        ${categoryOptions}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Cvik</label>
+                    <select name="custom_exercise[]" class="form-select bg-black text-light border-secondary" data-field="exercise"></select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Série</label>
+                    <input type="number" name="custom_sets[]" min="1" value="3" class="form-control bg-black text-light border-secondary" required>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Opakovania</label>
+                    <input type="text" name="custom_reps[]" value="10" class="form-control bg-black text-light border-secondary" required>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">Váha</label>
+                    <input type="number" step="0.5" name="custom_weight[]" value="0" class="form-control bg-black text-light border-secondary" data-field="weight">
+                    <div class="small text-secondary mt-1" data-field="weight-hint">kg</div>
+                </div>
+            </div>
+        `;
+
+        customExerciseList.appendChild(row);
+        updateExerciseOptions(row);
+
+        row.querySelector('[data-field="category"]').addEventListener('change', function () {
+            updateExerciseOptions(row);
+        });
+
+        row.querySelector('[data-field="exercise"]').addEventListener('change', function () {
+            updateWeightMode(row);
+        });
+
+        row.querySelector('[data-action="remove"]').addEventListener('click', function () {
+            row.remove();
+        });
+
+        customExerciseIndex += 1;
+    }
+
+    if (addCustomExerciseButton && customExerciseList) {
+        addCustomExerciseButton.addEventListener('click', addCustomExerciseRow);
+        addCustomExerciseRow();
+    }
+</script>
+
+{% endblock %}
+
+

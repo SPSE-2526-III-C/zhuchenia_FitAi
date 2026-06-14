@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+Flask-Bcrypt
+Flask-Login
+Flask-WTF
+WTForms
+email-validator
+google-generativeai
+python-dotenv
+grpcio

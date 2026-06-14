@@ -1,0 +1,81 @@
+{% extends "index.html" %}
+
+{% block title %}AI Odporúčanie{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h1 class="fw-bold">AI Tréning plán</h1>
+    <p class="text-secondary">Tvoj dnešný plán podľa cieľa a histórie tréningov</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card bg-black text-light p-4 h-100">
+            {% if recommendation %}
+                <h4 class="mb-3"> Dnešný plán</h4>
+                <div class="p-3 bg-dark rounded border border-secondary recommendation-text mb-3">
+                    {{ recommendation }}
+                </div>
+
+                {% if recommended_plan %}
+                    <form method="POST" action="{{ url_for('add_plan', plan_slug=recommended_plan.slug) }}">
+                        <button class="btn btn-success w-100">Pridať odporúčaný tréning do histórie</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <p class="text-secondary">AI odporúčanie nie je dostupné.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card bg-black text-light p-4 h-100">
+            <h4 class="mb-3">Kontext</h4>
+            <p class="text-secondary mb-2">Cieľ: {{ current_user.goal }}</p>
+            <p class="text-secondary">Úroveň: {{ current_user.level }}</p>
+
+            {% if recommended_plan %}
+                <hr>
+                <div class="plan-card-header bg-dark p-3 mb-3 rounded"><div class="plan-summary-label">{{ recommended_plan.name }}</div><div class="text-secondary small">{{ recommended_plan.exercises|length }} cviky</div></div>
+                <h5>{{ recommended_plan.name }}</h5>
+                <div class="row g-2">
+                    {% for exercise in recommended_plan.exercises %}
+                        <div class="col-6">
+                            <div class="exercise-card bg-dark border border-secondary rounded overflow-hidden h-100">
+                                <div class="exercise-card-head"><span>{{ get_exercise_group(exercise.name) }}</span></div>
+                                <div class="p-2 small">
+                                    <strong>{{ exercise.name }}</strong>
+                                    <div class="text-secondary">{{ exercise.sets }}×{{ exercise.reps }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <hr>
+            <h5>Posledné tréningy</h5>
+            {% if recent_workouts %}
+                <ul class="text-secondary ps-3">
+                    {% for workout in recent_workouts[:5] %}
+                        <li>{{ workout.exercise }} - {{ workout.weight }} kg x {{ workout.reps }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-secondary">Zatiaľ nemáš tréningy, odporúčanie vychádza z profilu.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="mt-4 d-flex flex-wrap gap-2">
+    <a href="{{ url_for('ai_recommendation') }}" class="btn btn-primary"> Vygenerovať nový plán</a>
+    <a href="{{ url_for('plans') }}" class="btn btn-outline-warning">Zobraziť plány</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">⬅ Späť na dashboard</a>
+</div>
+
+{% endblock %}
+
+
+

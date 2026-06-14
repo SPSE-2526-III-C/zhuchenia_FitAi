@@ -1,0 +1,83 @@
+{% extends "index.html" %}
+
+{% block title %}Môj účet{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h1 class="fw-bold">Môj účet</h1>
+    <p class="text-secondary">Tvoje osobné informácie, cieľ a štatistiky</p>
+</div>
+
+<!-- USER CARD -->
+<div class="card bg-black text-light p-4 mb-4">
+
+    <h3 class="mb-3">Profil</h3>
+
+    <p><strong>Username:</strong> {{ current_user.username }}</p>
+    <p><strong>Email:</strong> {{ current_user.email }}</p>
+    <p><strong>User ID:</strong> {{ current_user.id }}</p>
+
+    <form method="POST" class="row g-3 mt-2">
+        <div class="col-md-6">
+            <label class="form-label">Fitness cieľ</label>
+            <select name="goal" class="form-select bg-dark text-light border-secondary">
+                {% for goal in ['Sila', 'Svaly', 'Chudnutie', 'Kondícia', 'Kalistenika'] %}
+                    <option value="{{ goal }}" {% if current_user.goal == goal %}selected{% endif %}>{{ goal }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label">Úroveň</label>
+            <select name="level" class="form-select bg-dark text-light border-secondary">
+                {% for level in ['Začiatočník', 'Stredná úroveň', 'Pokročilý'] %}
+                    <option value="{{ level }}" {% if current_user.level == level %}selected{% endif %}>{{ level }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-12">
+            <button class="btn btn-primary">Uložiť profil</button>
+        </div>
+    </form>
+
+</div>
+
+<!-- STATS -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="card bg-black text-light p-3">
+            <h5>Počet tréningov</h5>
+            <h2 class="text-primary">{{ workout_count }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-black text-light p-3">
+            <h5>Status</h5>
+            <h2 class="text-success">{{ status }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<!-- ACTIONS -->
+<div class="card bg-black text-light p-4">
+
+    <h4 class="mb-3">Rýchle akcie</h4>
+
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('add_workout') }}" class="btn btn-success">Pridať tréning</a>
+        <a href="{{ url_for('plans') }}" class="btn btn-dashboard-action">Plány</a>
+        <a href="{{ url_for('history') }}" class="btn btn-dashboard-action">História</a>
+        <a href="{{ url_for('analytics') }}" class="btn btn-dashboard-action">Analytics</a>
+        <a href="{{ url_for('export_csv') }}" class="btn btn-dashboard-action">Export PDF</a>
+    </div>
+
+</div>
+
+{% endblock %}
+
+

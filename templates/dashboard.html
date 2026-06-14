@@ -1,0 +1,94 @@
+{% extends "index.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- HEADER -->
+<div class="mb-4">
+    <h1 class="fw-bold"> Vitaj vo FitAI</h1>
+    <p class="text-secondary">Tvoj inteligentný fitness tréningový systém</p>
+</div>
+
+{% if current_user.is_authenticated %}
+
+<!-- STATS -->
+<div class="row g-3 mb-4">
+
+    <div class="col-md-4">
+        <div class="card bg-black text-light p-3 h-100">
+            <h5>Celkový počet tréningov</h5>
+            <h2 class="text-primary">{{ workout_count }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-black text-light p-3 h-100">
+            <h5>Tento týždeň</h5>
+            <h2 class="text-warning">{{ week_count }}</h2>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-black text-light p-3 h-100">
+            <h5>Stav progresu</h5>
+            <h2 class="text-success">{{ status }}</h2>
+        </div>
+    </div>
+
+</div>
+
+<!-- RECENT WORKOUTS -->
+<div class="card bg-black text-light p-3 mb-4">
+
+    <h4 class="mb-3">Posledné tréningy</h4>
+
+    {% if recent %}
+        <ul class="list-group list-group-flush">
+            {% for w in recent %}
+                <li class="list-group-item bg-dark text-light d-flex justify-content-between">
+                    <div>
+                        <strong>{{ w.exercise }}</strong>
+                        <br>
+                        <small class="text-secondary">{{ w.date.strftime('%d.%m.%Y %H:%M') }}</small>
+                    </div>
+
+                    <div>
+                        <span class="badge bg-primary">{{ w.weight }} kg</span>
+                        <span class="badge bg-success">{{ w.reps }} reps</span>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-secondary">Zatiaľ nemáš žiadne tréningy.</p>
+    {% endif %}
+
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="d-flex flex-wrap gap-2">
+    <a href="{{ url_for('add_workout') }}" class="btn btn-success">Pridať tréning</a>
+    <a href="{{ url_for('plans') }}" class="btn btn-dashboard-action">Tréningové plány</a>
+    <a href="{{ url_for('history') }}" class="btn btn-dashboard-action">História</a>
+    <a href="{{ url_for('analytics') }}" class="btn btn-dashboard-action">Analytics</a>
+    <a href="{{ url_for('export_csv') }}" class="btn btn-dashboard-action">Export PDF</a>
+</div>
+
+{% else %}
+
+<div class="card bg-black text-light p-4">
+    <h3>Začni sledovať svoj progres</h3>
+    <p class="text-secondary">Prihlás sa alebo si vytvor účet a FitAI ti bude ukladať tréningy, grafy aj AI odporúčania.</p>
+
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('login') }}" class="btn btn-primary">Login</a>
+        <a href="{{ url_for('register') }}" class="btn btn-success">Register</a>
+    </div>
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+

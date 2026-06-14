@@ -1,0 +1,31 @@
+{% extends "index.html" %}
+
+{% block title %}404 - Stránka nenájdená{% endblock %}
+
+{% block content %}
+
+<div class="d-flex flex-column justify-content-center align-items-center text-center" style="min-height: 60vh;">
+
+    <h1 class="display-1 fw-bold text-danger">404</h1>
+
+    <h3 class="mb-3">Stránka nenájdená</h3>
+
+    <p class="text-secondary mb-4">
+        Ups… táto stránka neexistuje alebo bola presunutá.
+    </p>
+
+    <div class="d-flex gap-2">
+
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            ⬅ Späť na dashboard
+        </a>
+
+        <a href="{{ url_for('add_workout') }}" class="btn btn-outline-light">
+            Pridať tréning
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

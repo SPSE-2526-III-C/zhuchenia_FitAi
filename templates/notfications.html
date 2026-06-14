@@ -1,0 +1,77 @@
+{% extends "index.html" %}
+
+{% block title %}Notifikácie{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h1 class="fw-bold"> Notifikácie</h1>
+    <p class="text-secondary">Tvoje tréningové a systémové upozornenia</p>
+</div>
+
+<!-- NOTIFICATIONS LIST -->
+<div class="card bg-black text-light p-4">
+
+    {% if notifications %}
+
+        <ul class="list-group list-group-flush">
+
+            {% for n in notifications %}
+
+                <li class="list-group-item bg-black text-light border-secondary">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <!-- TYPE BADGE -->
+                            {% if n.type == "workout" %}
+                                <span class="badge bg-success">Workout</span>
+                            {% elif n.type == "ai" %}
+                                <span class="badge bg-primary">AI</span>
+                            {% elif n.type == "system" %}
+                                <span class="badge bg-warning text-dark">System</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Info</span>
+                            {% endif %}
+
+                            <span class="ms-2">{{ n.message }}</span>
+
+                        </div>
+
+                        <small class="text-secondary">
+                            {{ n.date }}
+                        </small>
+
+                    </div>
+
+                </li>
+
+            {% endfor %}
+
+        </ul>
+
+    {% else %}
+
+        <p class="text-secondary">
+            Žiadne notifikácie zatiaľ.
+        </p>
+
+    {% endif %}
+
+</div>
+
+<!-- ACTIONS -->
+<div class="mt-4 d-flex gap-2">
+
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-light">
+        ⬅ Späť
+    </a>
+
+    <a href="{{ url_for('ai_recommendation') }}" class="btn btn-primary">
+        AI tip
+    </a>
+
+</div>
+
+{% endblock %}

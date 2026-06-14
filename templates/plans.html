@@ -1,0 +1,136 @@
+{% extends "index.html" %}
+
+{% block title %}Tréningové plány{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h1 class="fw-bold">Tréningové plány</h1>
+    <p class="text-secondary">Vyber plán ako kontext pre AI trénera. Do histórie sa nič nepridá.</p>
+</div>
+
+{% if ai_plan %}
+<div class="card bg-black text-light overflow-hidden mb-4 recommended-plan">
+    <div class="row g-0 align-items-stretch">
+        <div class="col-lg-4">
+            <div class="plan-summary-panel bg-dark h-100 p-4">
+                <div class="plan-summary-label">AI kontext</div>
+                <div class="plan-summary-count">{{ ai_plan.plan.exercises|length }}</div>
+                <div class="text-secondary">cviky ako smer pre trénera</div>
+            </div>
+        </div>
+        <div class="col-lg-8 p-4">
+            <span class="badge bg-{{ ai_plan.plan.color }} plan-goal-badge mb-2">Aktívny kontext</span>
+            <h2 class="fw-bold">{{ ai_plan.plan.name }}</h2>
+            <p class="text-secondary mb-2">{{ ai_plan.plan.description }}</p>
+            <p class="mb-3">AI tréner bude pri radách vychádzať z tohto plánu, pretože {{ ai_plan.reason }}.</p>
+            <p class="text-secondary small mb-0">Toto nie je uložený tréning v histórii. Je to iba smer pre odporúčania.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card bg-black text-light p-4 mb-4 plan-quiz-card">
+    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+        <div>
+            <h2 class="fw-bold mb-1">AI tréner vyberie kontext</h2>
+            <p class="text-secondary mb-0">Odpovedz na 5 otázok a AI tréner si vyberie hotový plán ako svoj pracovný kontext.</p>
+        </div>
+        <a href="{{ url_for('account') }}" class="btn btn-outline-light btn-sm">Upraviť profil</a>
+    </div>
+
+    <form method="POST" action="{{ url_for('plans') }}">
+        <div class="row g-3">
+            <div class="col-lg-6">
+                <div class="quiz-question bg-dark border border-secondary rounded p-3 h-100">
+                    <h5>1. Aký je tvoj hlavný cieľ na najbližšie týždne?</h5>
+                    <label><input type="radio" name="goal" value="A" required> A. Byť silnejší v základných cvikoch</label>
+                    <label><input type="radio" name="goal" value="B"> B. Naberať svaly a tvarovať postavu</label>
+                    <label><input type="radio" name="goal" value="C"> C. Zlepšiť kondíciu a pravidelnosť</label>
+                    <label><input type="radio" name="goal" value="D"> D. Zlepšiť silu s vlastnou váhou</label>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="quiz-question bg-dark border border-secondary rounded p-3 h-100">
+                    <h5>2. Kde chceš cítiť najväčší progres?</h5>
+                    <label><input type="radio" name="focus" value="A" required> A. Tlakové cviky, hrudník a ramená</label>
+                    <label><input type="radio" name="focus" value="B"> B. Chrbát, zhyby, príťahy a biceps</label>
+                    <label><input type="radio" name="focus" value="C"> C. Nohy, zadok a stabilita</label>
+                    <label><input type="radio" name="focus" value="D"> D. Celé telo rovnomerne</label>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="quiz-question bg-dark border border-secondary rounded p-3 h-100">
+                    <h5>3. Ako chceš najčastejšie trénovať?</h5>
+                    <label><input type="radio" name="style" value="A" required> A. Vo fitku s činkami a strojmi</label>
+                    <label><input type="radio" name="style" value="B"> B. S vlastnou váhou alebo minimom vybavenia</label>
+                    <label><input type="radio" name="style" value="C"> C. Kratšie tréningy, ktoré zasiahnu celé telo</label>
+                    <label><input type="radio" name="style" value="D"> D. Flexibilne podľa energie a regenerácie</label>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="quiz-question bg-dark border border-secondary rounded p-3 h-100">
+                    <h5>4. Koľko času vieš reálne venovať jednému tréningu?</h5>
+                    <label><input type="radio" name="time" value="A" required> A. Do 35 minút, chcem efektívny tréning</label>
+                    <label><input type="radio" name="time" value="B"> B. 45 až 60 minút, klasický tréning mi vyhovuje</label>
+                    <label><input type="radio" name="time" value="C"> C. Mám dosť času na silový tréning</label>
+                    <label><input type="radio" name="time" value="D"> D. Chcem tréning, ktorý viem spraviť hocikde</label>
+                </div>
+            </div>
+
+            <div class="col-lg-12">
+                <div class="quiz-question bg-dark border border-secondary rounded p-3">
+                    <h5>5. Aký tréning zvládneš najlepšie držať dlhodobo?</h5>
+                    <label><input type="radio" name="energy" value="A" required> A. Intenzívnejší silový tréning</label>
+                    <label><input type="radio" name="energy" value="B"> B. Vyvážený tréning bez extrémov</label>
+                    <label><input type="radio" name="energy" value="C"> C. Celotelový plán, ktorý sa ľahko opakuje</label>
+                    <label><input type="radio" name="energy" value="D"> D. Tréning bez veľkých váh a s kontrolou pohybu</label>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn btn-primary w-100 mt-3">Nastaviť AI kontext podľa odpovedí</button>
+    </form>
+</div>
+
+<div class="card bg-black text-light p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <div>
+            <h5 class="mb-1">Tvoj profil</h5>
+            <span class="text-secondary">Cieľ: {{ current_user.goal }} | Úroveň: {{ current_user.level }}</span>
+        </div>
+        <a href="{{ url_for('account') }}" class="btn btn-outline-light btn-sm">Upraviť profil</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for plan in plans %}
+        <div class="col-lg-6">
+            <div class="card bg-black text-light h-100 overflow-hidden workout-plan-card plan-description-card">
+                <div class="plan-card-header bg-dark p-3">
+                    <div class="plan-summary-label">{{ plan.name }}</div>
+                    <div class="text-secondary small">{{ plan.schedule }}</div>
+                </div>
+
+                <div class="p-4">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                        <h3 class="mb-1">{{ plan.name }}</h3>
+                        <span class="badge bg-{{ plan.color }} plan-goal-badge">{{ plan.goal }}</span>
+                    </div>
+
+                    <p class="text-secondary">{{ plan.description }}</p>
+                    <p class="text-secondary small mb-3">Obsahuje {{ plan.exercises|length }} pripravené cviky, ale na tejto stránke slúži iba ako smer pre AI trénera.</p>
+
+                    <form method="POST" action="{{ url_for('set_plan_context', plan_slug=plan.slug) }}">
+                        <button class="btn btn-outline-{{ plan.color }} w-100">Použiť ako AI kontext</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

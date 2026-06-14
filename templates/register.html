@@ -1,0 +1,73 @@
+﻿{% extends "index.html" %}
+
+{% block title %}Registrácia{% endblock %}
+
+{% block content %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-6">
+
+        <div class="mb-4 text-center">
+            <h1 class="fw-bold"> Registrácia</h1>
+            <p class="text-secondary">Vytvor si FitAI účet</p>
+        </div>
+
+        <div class="card bg-black text-light p-4">
+
+            <form method="POST">
+
+                {{ form.hidden_tag() }}
+
+                <!-- USERNAME -->
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    {{ form.username(class="form-control" ~ (" is-invalid" if form.username.errors else "")) }}
+                    {% for error in form.username.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+
+                <!-- EMAIL -->
+                <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    {{ form.email(class="form-control" ~ (" is-invalid" if form.email.errors else "")) }}
+                    {% for error in form.email.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="mb-3">
+                    <label class="form-label">Heslo</label>
+                    {{ form.password(class="form-control" ~ (" is-invalid" if form.password.errors else "")) }}
+                    {% for error in form.password.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+
+                <!-- CONFIRM PASSWORD -->
+                <div class="mb-3">
+                    <label class="form-label">Potvrď heslo</label>
+                    {{ form.confirm_password(class="form-control" ~ (" is-invalid" if form.confirm_password.errors else "")) }}
+                    {% for error in form.confirm_password.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+                </div>
+
+                <!-- SUBMIT -->
+                <div class="d-grid">
+                    {{ form.submit(class="btn btn-success") }}
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- LINK -->
+        <div class="text-center mt-3">
+            <p class="text-secondary">
+                Už máš účet?
+                <a href="{{ url_for('login') }}" class="text-primary">
+                    Prihlás sa
+                </a>
+            </p>
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

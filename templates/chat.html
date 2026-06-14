@@ -1,0 +1,216 @@
+{% extends "index.html" %}
+
+{% block title %}AI Tréner{% endblock %}
+
+{% block content %}
+
+<div class="mb-4">
+    <h1 class="fw-bold"> AI Tréner</h1>
+    <p class="text-secondary">Normálny rozhovor s trénerom, ktorý pozná tvoj cieľ a tréningy</p>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="card bg-black text-light p-4 h-100 chat-shell">
+
+            <div class="d-flex justify-content-between align-items-end gap-3 flex-wrap mb-3">
+                <form method="GET" class="flex-grow-1">
+                    <label class="form-label">Vyber trénera</label>
+                    <select name="trainer" class="form-select bg-dark text-light border-secondary" onchange="this.form.submit()">
+                        <option value="Marek" {% if trainer == 'Marek' %}selected{% endif %}>Marek (pro tréner)</option>
+                        <option value="Sara" {% if trainer == 'Sara' %}selected{% endif %}>Sara (motivácia)</option>
+                        <option value="Bruno" {% if trainer == 'Bruno' %}selected{% endif %}>Bruno (BEAST MODE)</option>
+                    </select>
+                </form>
+
+                <form method="POST" action="{{ url_for('clear_chat') }}">
+                    <input type="hidden" name="trainer_name" value="{{ trainer }}">
+                    <button class="btn btn-outline-light btn-sm">Nový chat</button>
+                </form>
+            </div>
+
+            <div class="chat-window bg-dark rounded border border-secondary p-3 mb-3" id="chatWindow">
+                {% if chat_history %}
+                    {% for message in chat_history %}
+                        <div class="chat-row {% if message.role == 'user' %}chat-row-user{% else %}chat-row-ai{% endif %}">
+                            <div class="chat-bubble {% if message.role == 'user' %}chat-user{% else %}chat-ai{% endif %}">
+                                <div class="chat-label">
+                                    {% if message.role == 'user' %}Ty{% else %}{{ trainer }}{% endif %}
+                                </div>
+                                {% if loop.last and message.role == 'assistant' %}
+                                    <div class="recommendation-text typewriter-response" data-full-text="{{ message.content|e }}"></div>
+                                {% else %}
+                                    <div class="recommendation-text">{{ message.content }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="chat-empty text-secondary">
+                        Napíš trénerovi, čo chceš dnes riešiť: plán, techniku, progres, jedlo alebo motiváciu.
+                    </div>
+                {% endif %}
+            </div>
+
+            <form method="POST" id="chatForm">
+                <input type="hidden" name="trainer_name" value="{{ trainer }}">
+
+                <div class="input-group">
+                    <input type="text"
+                           name="message"
+                           id="chatInput"
+                           class="form-control bg-dark text-light border-secondary"
+                           placeholder="Napr. Dnes ma bolia ramená, čo mám cvičiť?"
+                           autocomplete="off"
+                           required>
+                    <button class="btn btn-primary" id="chatSendButton">Odoslať</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card bg-black text-light p-4 h-100">
+            <h4 class="mb-3">Kontext trénera</h4>
+            <p class="text-secondary">Cieľ: {{ current_user.goal }}</p>
+            <p class="text-secondary">Úroveň: {{ current_user.level }}</p>
+
+            <hr>
+
+            <h5>Posledné tréningy</h5>
+            {% if recent_workouts %}
+                <ul class="text-secondary ps-3">
+                    {% for workout in recent_workouts[:5] %}
+                        <li>{{ workout.exercise }} - {{ workout.sets or '3' }}×{{ workout.reps }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="text-secondary">Pridaj tréningy a AI bude vedieť radiť presnejšie.</p>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatWindow = document.getElementById('chatWindow');
+    const chatForm = document.getElementById('chatForm');
+    const chatInput = document.getElementById('chatInput');
+    const chatSendButton = document.getElementById('chatSendButton');
+
+    function scrollChatToBottom() {
+        if (chatWindow) {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+    }
+
+    function appendBubble(role, label, content) {
+        const row = document.createElement('div');
+        row.className = role === 'user' ? 'chat-row chat-row-user' : 'chat-row chat-row-ai';
+
+        const bubble = document.createElement('div');
+        bubble.className = role === 'user' ? 'chat-bubble chat-user' : 'chat-bubble chat-ai';
+
+        const bubbleLabel = document.createElement('div');
+        bubbleLabel.className = 'chat-label';
+        bubbleLabel.textContent = label;
+
+        const bubbleContent = document.createElement('div');
+        bubbleContent.className = 'recommendation-text';
+        bubbleContent.textContent = content;
+
+        bubble.appendChild(bubbleLabel);
+        bubble.appendChild(bubbleContent);
+        row.appendChild(bubble);
+        chatWindow.appendChild(row);
+        scrollChatToBottom();
+
+        return bubbleContent;
+    }
+
+    function appendThinkingBubble() {
+        const row = document.createElement('div');
+        row.className = 'chat-row chat-row-ai thinking-row';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble chat-ai';
+
+        const bubbleLabel = document.createElement('div');
+        bubbleLabel.className = 'chat-label';
+        bubbleLabel.textContent = '{{ trainer }}';
+
+        const dots = document.createElement('div');
+        dots.className = 'typing-dots';
+        dots.innerHTML = '<span></span><span></span><span></span>';
+
+        bubble.appendChild(bubbleLabel);
+        bubble.appendChild(dots);
+        row.appendChild(bubble);
+        chatWindow.appendChild(row);
+        scrollChatToBottom();
+    }
+
+    function typeLastResponse() {
+        const target = document.querySelector('.typewriter-response');
+
+        if (!target) {
+            scrollChatToBottom();
+            return;
+        }
+
+        const fullText = target.dataset.fullText || '';
+        let index = 0;
+
+        target.textContent = '';
+        target.classList.add('typing-cursor');
+
+        function typeNextCharacter() {
+            if (index < fullText.length) {
+                target.textContent += fullText.charAt(index);
+                index += 1;
+                scrollChatToBottom();
+
+                const currentChar = fullText.charAt(index - 1);
+                const delay = currentChar === '.' || currentChar === '!' || currentChar === '?' ? 90 : 14;
+                window.setTimeout(typeNextCharacter, delay);
+            } else {
+                target.classList.remove('typing-cursor');
+            }
+        }
+
+        window.setTimeout(typeNextCharacter, 180);
+    }
+
+    if (chatForm && chatInput && chatSendButton && chatWindow) {
+        chatForm.addEventListener('submit', function (event) {
+            const message = chatInput.value.trim();
+
+            if (!message) {
+                return;
+            }
+
+            event.preventDefault();
+
+            const emptyState = chatWindow.querySelector('.chat-empty');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            appendBubble('user', 'Ty', message);
+            appendThinkingBubble();
+
+            chatInput.readOnly = true;
+            chatSendButton.disabled = true;
+            chatSendButton.textContent = 'Odosielam...';
+
+            window.setTimeout(function () {
+                chatForm.submit();
+            }, 120);
+        });
+    }
+
+    typeLastResponse();
+</script>
+
+{% endblock %}
